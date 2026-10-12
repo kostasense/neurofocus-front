@@ -1,17 +1,17 @@
-import { Text, View, StyleSheet } from "react-native";
-
+import { Redirect } from "expo-router";
+import { useAuth } from "@/context/auth-context";
 export default function Index() {
+  const { user } = useAuth();
+  if (!user) return <Redirect href="/(auth)/login" />;
   return (
-    <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
-    </View>
+    <Redirect
+      href={
+        user.rol === 1
+          ? "/(app)/patient"
+          : user.rol === 2
+            ? "/(app)/psychologist"
+            : "/(app)/admin"
+      }
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

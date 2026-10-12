@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "axios": "latest",
+    "expo-secure-store": "~57.0.4",
+    "expo-font": "latest",
+    "@expo-google-fonts/dm-sans": "latest",
+    "@expo-google-fonts/lora": "latest",
+    "nativewind": "4.2.7",
+    "react-native-reanimated": "latest",
+    "react-native-safe-area-context": "latest",
+    "lucide-react-native": "latest",
+    "react-native-svg": "latest",
+    "clsx": "latest",
+    "tailwind-merge": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17",
+    "prettier-plugin-tailwindcss": "^0.5.11",
+    "babel-preset-expo": "latest"
+  }
+}
