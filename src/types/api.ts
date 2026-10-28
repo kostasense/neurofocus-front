@@ -222,3 +222,40 @@ export type Instrument = {
   version: number;
   activo: boolean;
 };
+
+export type PatientListItem = {
+  id_paciente: number;
+  nombre: string;
+  correo: string;
+  activo: boolean;
+  num_control_o_num_empleado: string | null;
+  tipo_persona: string;
+  fecha_nacimiento: string | null;
+  contacto_preferido: number | null;
+};
+
+// GET /assignments/psychologist/:id/patients
+export type PsychologistPatient = {
+  id_asignacion: BigId;
+  id_paciente: number;
+  paciente: string;
+  correo: string;
+  num_control_o_num_empleado: string | null;
+  tipo_persona: string;
+  es_principal: boolean;
+  fecha_inicio: string;
+};
+
+// GET /assignments/patient/:id/history
+export type Assignment = {
+  id_asignacion: BigId;
+  id_paciente: number;
+  id_psicologo: number;
+  psicologo: string;
+  cedula_profesional: string;
+  especialidad: string | null;
+  es_principal: boolean;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  motivo_fin: string | null;
+};
