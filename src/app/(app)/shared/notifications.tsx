@@ -1,10 +1,11 @@
 import { notificationsApi } from "@/api/notifications";
-import { useLoad } from "@/hooks/use-load";
-import { Screen } from "@/components/layout/screen";
-import { AppHeader } from "@/components/layout/app-header";
-import { H1, Muted } from "@/components/ui/typography";
 import { SimpleList } from "@/components/data/simple-list";
 import { Loading } from "@/components/feedback/loading";
+import { AppHeader } from "@/components/layout/app-header";
+import { Screen } from "@/components/layout/screen";
+import { H1, Muted } from "@/components/ui/typography";
+import { useLoad } from "@/hooks/use-load";
+import { formatDateTime } from "@/lib/format";
 import type { Notification } from "@/types/api";
 export default function Notifications() {
   const q = useLoad<Notification[]>(() =>
@@ -24,7 +25,7 @@ export default function Notifications() {
           keyOf={(x) => x.id_notificacion}
           renderTitle={(x) => x.titulo}
           renderSubtitle={(x) =>
-            `${x.cuerpo} · ${new Date(x.fecha_creacion).toLocaleString("es-MX")}`
+            `${x.cuerpo} · ${formatDateTime(x.fecha_creacion)}`
           }
         />
       </Screen>

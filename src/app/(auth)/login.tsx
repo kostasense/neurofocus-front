@@ -6,12 +6,13 @@ import { H1, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/auth-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -22,8 +23,10 @@ export default function Login() {
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const contrasenaRef = useRef<TextInput>(null);
 
   const submit = async () => {
+    if (loading) return;
     setLoading(true);
     setError("");
     try {
@@ -67,15 +70,21 @@ export default function Login() {
               onChangeText={setCorreo}
               autoCapitalize="none"
               keyboardType="email-address"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => contrasenaRef.current?.focus()}
             />
             <View>
               <Input
+                ref={contrasenaRef}
                 label="Contraseña"
                 value={contrasena}
                 onChangeText={setContrasena}
                 secureTextEntry={!mostrarContrasena}
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={() => void submit()}
               />
               <Pressable
                 onPress={() => setMostrarContrasena((v) => !v)}

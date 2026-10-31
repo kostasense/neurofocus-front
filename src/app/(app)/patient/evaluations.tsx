@@ -1,14 +1,15 @@
-import { Alert, View } from "react-native";
 import { evaluationsApi } from "@/api/evaluations";
-import { useAuth } from "@/context/auth-context";
-import { useLoad } from "@/hooks/use-load";
-import { Screen } from "@/components/layout/screen";
-import { AppHeader } from "@/components/layout/app-header";
-import { H1, Muted } from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
 import { SimpleList } from "@/components/data/simple-list";
 import { Loading } from "@/components/feedback/loading";
+import { AppHeader } from "@/components/layout/app-header";
+import { Screen } from "@/components/layout/screen";
+import { Button } from "@/components/ui/button";
+import { H1, Muted } from "@/components/ui/typography";
+import { useAuth } from "@/context/auth-context";
+import { useLoad } from "@/hooks/use-load";
+import { formatDate } from "@/lib/format";
 import type { Evaluation } from "@/types/api";
+import { Alert } from "react-native";
 export default function Evaluations() {
   const { user } = useAuth();
   const q = useLoad<Evaluation[]>(
@@ -44,7 +45,7 @@ export default function Evaluations() {
           keyOf={(x) => x.id_evaluacion}
           renderTitle={(x) => `Evaluación #${x.id_evaluacion}`}
           renderSubtitle={(x) =>
-            `Estado ${x.estado} · ${new Date(x.fecha_inicio).toLocaleDateString("es-MX")}`
+            `Estado ${x.estado} · ${formatDate(x.fecha_inicio)}`
           }
         />
       </Screen>

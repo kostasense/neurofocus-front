@@ -6,6 +6,7 @@ import { Screen } from "@/components/layout/screen";
 import { H1, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/auth-context";
 import { useLoad } from "@/hooks/use-load";
+import { formatDateTime } from "@/lib/format";
 import { DashboardPatient } from "@/types/api";
 export default function Patients() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function Patients() {
           keyOf={(x) => x.id_paciente}
           renderTitle={(x) => x.paciente}
           renderSubtitle={(x) =>
-            `Tipo ${x.tipo_persona} · Próxima cita: ${x.proxima_cita ? new Date(x.proxima_cita).toLocaleString("es-MX") : "Sin cita"}`
+            `Tipo ${x.tipo_persona} · Próxima cita: ${x.proxima_cita ? formatDateTime(x.proxima_cita) : "Sin cita"}`
           }
         />
       </Screen>

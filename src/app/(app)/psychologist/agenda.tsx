@@ -1,11 +1,12 @@
 import { appointmentsApi } from "@/api/appointments";
-import { useAuth } from "@/context/auth-context";
-import { useLoad } from "@/hooks/use-load";
-import { Screen } from "@/components/layout/screen";
-import { AppHeader } from "@/components/layout/app-header";
-import { H1, Muted } from "@/components/ui/typography";
 import { SimpleList } from "@/components/data/simple-list";
 import { Loading } from "@/components/feedback/loading";
+import { AppHeader } from "@/components/layout/app-header";
+import { Screen } from "@/components/layout/screen";
+import { H1, Muted } from "@/components/ui/typography";
+import { useAuth } from "@/context/auth-context";
+import { useLoad } from "@/hooks/use-load";
+import { formatDateTime } from "@/lib/format";
 import type { Appointment } from "@/types/api";
 export default function Agenda() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function Agenda() {
           keyOf={(x) => x.id_cita}
           renderTitle={(x) => x.paciente ?? `Paciente #${x.id_paciente}`}
           renderSubtitle={(x) =>
-            `${new Date(x.inicio).toLocaleString("es-MX")} · Estado ${x.estado}`
+            `${formatDateTime(x.inicio)} · Estado ${x.estado}`
           }
         />
       </Screen>
