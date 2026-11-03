@@ -69,7 +69,7 @@ function Chips<T extends string | number | boolean>({
             key={String(o.value)}
             onPress={() => onChange(o.value)}
             className={cn(
-              "rounded-nf-sm border px-3 py-2",
+              "rounded-full border px-3 py-2",
               on ? "border-primary bg-primary" : "border-border bg-surface",
             )}
           >
