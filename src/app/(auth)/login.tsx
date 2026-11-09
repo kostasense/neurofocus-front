@@ -2,31 +2,21 @@ import { Screen } from "@/components/layout/screen";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { H1, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/auth-context";
-import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 
 export default function Login() {
   const { signIn } = useAuth();
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
-  const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const contrasenaRef = useRef<TextInput>(null);
 
   const submit = async () => {
-    if (loading) return;
     setLoading(true);
     setError("");
     try {
@@ -70,40 +60,12 @@ export default function Login() {
               onChangeText={setCorreo}
               autoCapitalize="none"
               keyboardType="email-address"
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => contrasenaRef.current?.focus()}
             />
-            <View>
-              <Input
-                ref={contrasenaRef}
-                label="Contraseña"
-                value={contrasena}
-                onChangeText={setContrasena}
-                secureTextEntry={!mostrarContrasena}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="go"
-                onSubmitEditing={() => void submit()}
-              />
-              <Pressable
-                onPress={() => setMostrarContrasena((v) => !v)}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  mostrarContrasena
-                    ? "Ocultar contraseña"
-                    : "Mostrar contraseña"
-                }
-                className="absolute bottom-0 right-0 h-12 w-12 items-center justify-center"
-              >
-                <Ionicons
-                  name={mostrarContrasena ? "eye-off-outline" : "eye-outline"}
-                  size={22}
-                  color="#6b7280"
-                />
-              </Pressable>
-            </View>
+            <PasswordInput
+              label="Contraseña"
+              value={contrasena}
+              onChangeText={setContrasena}
+            />
             <Button
               title="Iniciar sesión"
               loading={loading}

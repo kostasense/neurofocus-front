@@ -1,8 +1,9 @@
 import { apiClient, apiData } from "@/lib/api-client";
+import type { Interval, Schedule } from "@/lib/availability";
 import { Appointment } from "@/types/api";
 export const appointmentsApi = {
   schedules: (id: number, includeInactive = false) =>
-    apiData(
+    apiData<Schedule[]>(
       apiClient.get(`/appointments/schedules/psychologist/${id}`, {
         params: { includeInactive },
       }),
@@ -13,6 +14,12 @@ export const appointmentsApi = {
     apiData(apiClient.patch(`/appointments/schedules/${id}`, d)),
   deactivateSchedule: (id: number) =>
     apiData(apiClient.patch(`/appointments/schedules/${id}/deactivate`)),
+  busy: (id: number, from?: string, to?: string) =>
+    apiData<Interval[]>(
+      apiClient.get(`/appointments/availability/psychologist/${id}`, {
+        params: { from, to },
+      }),
+    ),
   create: (d: any) => apiData(apiClient.post("/appointments", d)),
   byPatient: (id: number) =>
     apiData<Appointment[]>(apiClient.get(`/appointments/patient/${id}`)),
