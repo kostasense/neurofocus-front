@@ -3,11 +3,11 @@ import { Muted } from "@/components/ui/typography";
 import { Image } from "expo-image";
 import { PropsWithChildren } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    useWindowDimensions,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+  View,
 } from "react-native";
 
 const LOGO = require("../../../assets/neurofocus/neurofocus_logo.png");
@@ -57,7 +57,7 @@ export function AuthShell({ children }: PropsWithChildren) {
     );
 
   return (
-    <Screen>
+    <Screen topInset>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1 justify-center"

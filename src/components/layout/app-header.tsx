@@ -16,6 +16,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // assets/neurofocus/neurofocus_logo.png (relativo a la raíz del proyecto)
 const LOGO = require("../../../assets/neurofocus/neurofocus_logo.png");
@@ -63,6 +64,7 @@ function MenuItem({
 export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
   const { user, signOut } = useAuth();
   const unread = useUnread(user?.userId);
+  const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   // Web con pantalla ancha = ventana flotante. Móvil (o web angosto) = cajón.
   const isDesktop = Platform.OS === "web" && windowWidth >= DESKTOP_MIN_WIDTH;
@@ -282,8 +284,11 @@ export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
       onLayout={(e) =>
         setHeaderBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)
       }
-      className="border-b border-border bg-surface px-4 py-3 md:px-8"
+      // El paddingTop respeta la barra de estado / notch (en el APK la app dibuja bajo ella).
+      style={{ paddingTop: insets.top }}
+      className="border-b border-border bg-surface px-4 pb-3 md:px-8"
     >
+      <View className="h-3" />
       <View className="mx-auto w-full max-w-[1100px] flex-row items-center justify-between">
         <Pressable
           onPress={goHome}
