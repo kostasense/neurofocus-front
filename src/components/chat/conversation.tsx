@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn";
 import { confirmAsync } from "@/lib/confirm";
 import { decryptText, encryptText, fromB64, securityCode } from "@/lib/e2ee";
 import type { ChatChannel, ChatMessage } from "@/types/api";
+import { Feather } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     FlatList,
@@ -235,6 +236,7 @@ export function Conversation({
           ids.has(m.idMensaje) ? { ...m, leido: now, entregado: now } : m,
         ),
       );
+      onChanged?.(); // actualiza los contadores de la lista
     });
   }, [messages, loaded, me.id]);
 
@@ -479,10 +481,12 @@ export function Conversation({
               <Pressable
                 onPress={onBack}
                 accessibilityRole="button"
-                hitSlop={8}
+                accessibilityLabel="Volver a conversaciones"
+                className="mb-1 min-h-10 flex-row items-center gap-2 self-start rounded-nf-sm border border-border bg-background px-3.5 active:opacity-80"
               >
-                <Text className="font-sans text-sm text-primary">
-                  ← Conversaciones
+                <Feather name="arrow-left" size={18} color="#1C1C2A" />
+                <Text className="font-sans text-sm font-medium text-ink">
+                  Conversaciones
                 </Text>
               </Pressable>
             ) : null}
@@ -505,11 +509,13 @@ export function Conversation({
                 loading={busyAction}
                 onPress={() => void toggleEnabled()}
               />
+              {/*}
               <Button
                 title="Cerrar chat"
                 variant="secondary"
                 onPress={() => void closeChannel()}
               />
+              */}
             </>
           ) : null}
           {role === 1 && channel.abierto ? (
@@ -542,7 +548,7 @@ export function Conversation({
                 </Text>
                 <Muted className="mt-1">
                   Compáralo con la otra persona por otro medio (en consulta, por
-                  ejemplo). Si coincide, nadie intercepta sus claves.
+                  ejemplo). Si coincide, nadie intercepta vuestras claves.
                 </Muted>
               </>
             ) : (

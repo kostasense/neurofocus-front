@@ -16,7 +16,7 @@ import { Conversation } from "./conversation";
 type Candidate = { idOtro: number; nombre: string };
 
 const WIDE = 900;
-const REFRESH_MS = 20000;
+const REFRESH_MS = 10000;
 
 const errText = (e: any) =>
   e?.response?.data?.message ?? e?.message ?? "No se pudo cargar";
@@ -145,15 +145,29 @@ export function ChatWorkspace({
               on ? "border-primary bg-surface" : "border-border bg-surface",
             )}
           >
-            <Text className="font-sans text-[15px] font-semibold text-ink">
-              {nameOf(c)}
-            </Text>
-            <Muted>
-              {state}
-              {c.ultima_actividad
-                ? ` · ${formatDateTime(c.ultima_actividad)}`
-                : ""}
-            </Muted>
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-1">
+                <Text className="font-sans text-[15px] font-semibold text-ink">
+                  {nameOf(c)}
+                </Text>
+                <Muted>
+                  {state}
+                  {c.ultima_actividad
+                    ? ` · ${formatDateTime(c.ultima_actividad)}`
+                    : ""}
+                </Muted>
+              </View>
+              {Number(c.no_leidos) > 0 ? (
+                <View
+                  accessibilityLabel={`${c.no_leidos} mensajes sin leer`}
+                  className="h-7 min-w-7 items-center justify-center rounded-full bg-primary px-1.5"
+                >
+                  <Text className="font-sans text-xs font-semibold text-white">
+                    {Number(c.no_leidos) > 99 ? "99+" : c.no_leidos}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </Pressable>
         );
       })}

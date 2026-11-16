@@ -3,6 +3,7 @@ import { assignmentsApi } from "@/api/assignments";
 import { evaluationsApi } from "@/api/evaluations";
 import { patientsApi } from "@/api/patients";
 import { psychologistsApi } from "@/api/psychologists";
+import { ChatFab } from "@/components/chat/chat-fab";
 import { AvailabilityCalendar } from "@/components/dashboard/availability-calendar";
 import { Loading } from "@/components/feedback/loading";
 import { AppHeader } from "@/components/layout/app-header";
@@ -220,7 +221,7 @@ export default function PatientDashboard() {
     )[0];
 
   return (
-    <>
+    <View className="flex-1">
       <AppHeader />
       <Screen>
         <View className="mx-auto w-full max-w-[760px] gap-5">
@@ -317,6 +318,7 @@ export default function PatientDashboard() {
           ) : null}
         </View>
       </Screen>
-    </>
+      {assigned ? <ChatFab href="/(app)/patient/chat" /> : null}
+    </View>
   );
 }

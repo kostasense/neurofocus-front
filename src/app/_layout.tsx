@@ -1,7 +1,5 @@
-import "../../global.css";
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useFonts } from "expo-font";
+import { Loading } from "@/components/feedback/loading";
+import { AuthProvider, useAuth } from "@/context/auth-context";
 import {
   DMSans_300Light,
   DMSans_400Regular,
@@ -13,9 +11,13 @@ import {
   Lora_500Medium,
   Lora_600SemiBold,
 } from "@expo-google-fonts/lora";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import Head from "expo-router/head";
+import { StatusBar } from "expo-status-bar";
+import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AuthProvider, useAuth } from "@/context/auth-context";
-import { Loading } from "@/components/feedback/loading";
+import "../../global.css";
 function Navigation() {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
@@ -42,11 +44,18 @@ export default function RootLayout() {
   });
   if (!loaded) return null;
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <StatusBar style="dark" />
-        <Navigation />
-      </AuthProvider>
-    </SafeAreaProvider>
+    <>
+      {Platform.OS === "web" && (
+        <Head>
+          <title>NeuroFocus</title>
+        </Head>
+      )}
+      <SafeAreaProvider>
+        <AuthProvider>
+          <StatusBar style="dark" />
+          <Navigation />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </>
   );
 }

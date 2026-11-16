@@ -2,6 +2,7 @@ import { appointmentsApi } from "@/api/appointments";
 import { chatApi } from "@/api/chat";
 import { evaluationsApi } from "@/api/evaluations";
 import { psychologistsApi } from "@/api/psychologists";
+import { ChatFab } from "@/components/chat/chat-fab";
 import { Loading } from "@/components/feedback/loading";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/layout/screen";
@@ -144,7 +145,6 @@ const QUICK: { label: string; href: Href }[] = [
   { label: "Agenda", href: "/(app)/psychologist/agenda" },
   { label: "Evaluaciones", href: "/(app)/psychologist/evaluations" },
   { label: "Expedientes", href: "/(app)/psychologist/records" },
-  { label: "Chat", href: "/(app)/psychologist/chat" },
   { label: "Alertas", href: "/(app)/psychologist/alerts" },
 ];
 
@@ -214,7 +214,7 @@ export default function PsychDashboard() {
   });
 
   return (
-    <>
+    <View className="flex-1">
       <AppHeader />
       <Screen>
         <View className="gap-5">
@@ -260,6 +260,20 @@ export default function PsychDashboard() {
               </View>
             ) : null}
           </Card>
+
+          {/* Accesos */}
+          <View className="flex-row flex-wrap gap-2">
+            {QUICK.map((l) => (
+              <Pressable
+                key={l.label}
+                accessibilityRole="link"
+                onPress={() => go(l.href)}
+                className="rounded-full border border-border bg-surface px-4 py-2 active:border-primary"
+              >
+                <Text className="font-sans text-sm text-ink">{l.label}</Text>
+              </Pressable>
+            ))}
+          </View>
 
           {/* Alertas de pánico */}
           {activeAlerts.length > 0 ? (
@@ -430,22 +444,9 @@ export default function PsychDashboard() {
               </View>
             )}
           </Card>
-
-          {/* Accesos */}
-          <View className="flex-row flex-wrap gap-2">
-            {QUICK.map((l) => (
-              <Pressable
-                key={l.label}
-                accessibilityRole="link"
-                onPress={() => go(l.href)}
-                className="rounded-full border border-border bg-surface px-4 py-2 active:border-primary"
-              >
-                <Text className="font-sans text-sm text-ink">{l.label}</Text>
-              </Pressable>
-            ))}
-          </View>
         </View>
       </Screen>
-    </>
+      <ChatFab href="/(app)/psychologist/chat" />
+    </View>
   );
 }

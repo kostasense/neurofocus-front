@@ -194,6 +194,8 @@ export type ChatChannel = {
   habilitado_por_psicologo: boolean;
   abierto: boolean;
   chat_disponible?: boolean;
+  /** Mensajes del otro participante que aún no has leído (solo en el listado). */
+  no_leidos?: number;
   fecha_creacion: string;
   fecha_cierre: string | null;
   ultima_actividad: string | null;
