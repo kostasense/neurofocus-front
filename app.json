@@ -15,7 +15,8 @@
         "backgroundColor": "#3B7A70",
         "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-512x512.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kostasense.neurofocusfront"
     },
     "web": {
       "output": "static",
@@ -37,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7aa8a9bb-477e-43c3-b17e-8a15bf8d8a5f"
+      }
     }
   }
 }
