@@ -4,7 +4,7 @@
     "slug": "neurofocus-front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/neurofocus/icono_neurofocus_vb.png",
     "scheme": "neurofocusfront",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#3B7A70",
+        "backgroundImage": "./assets/neurofocus/bg_foco_blanco.png",
         "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-512x512.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -27,13 +27,18 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
+          "backgroundColor": "#3B7A70",
+          "image": "./assets/neurofocus/icono_neurofocus_vb.png",
           "imageWidth": 76
         }
       ],
+      [
+        "expo-build-properties",
+        { "android": { "usesCleartextTraffic": true } }
+      ],
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
