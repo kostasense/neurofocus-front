@@ -13,6 +13,22 @@ export type InstrumentApplication = {
   respuestas?: { numero_reactivo: number; valor: number }[];
 };
 
+/** Aplicación con sus respuestas (GET /evaluations/:id/applications). */
+export type EvaluationApplication = {
+  id_aplicacion: number | string;
+  id_evaluacion: number | string;
+  id_instrumento: number;
+  codigo: string;
+  estado: 1 | 2 | 3 | 4;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  puntaje_total: number | null;
+  nivel: number | null;
+  dificultad_funcional: number | null;
+  alerta_prioritaria: boolean | number | null;
+  respuestas: { numero_reactivo: number; valor: number }[];
+};
+
 export type SubmitPayload = {
   respuestas: { numeroReactivo: number; valor: number }[];
   dificultadFuncional?: number; // solo PHQ-9
@@ -31,6 +47,11 @@ export const evaluationsApi = {
       }),
     ),
   get: (id: number) => apiData<Evaluation>(apiClient.get(`/evaluations/${id}`)),
+  /** Detalle de respuestas por instrumento (requiere el parche respuestas-evaluacion). */
+  applications: (id: number) =>
+    apiData<EvaluationApplication[]>(
+      apiClient.get(`/evaluations/${id}/applications`),
+    ),
   start: (id: number, idInstrumento: number) =>
     apiData<InstrumentApplication>(
       apiClient.post(`/evaluations/${id}/instruments`, { idInstrumento }),

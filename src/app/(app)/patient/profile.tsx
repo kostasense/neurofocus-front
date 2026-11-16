@@ -1,13 +1,18 @@
 import { assignmentsApi } from "@/api/assignments";
 import { patientsApi } from "@/api/patients";
-import { usersApi } from "@/api/users";
 import { Loading } from "@/components/feedback/loading";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/layout/screen";
+import { AccountSection } from "@/components/profile/account-section";
+import { PasswordSection } from "@/components/profile/password-section";
+import {
+  Feedback,
+  ReadOnlyField,
+  useSaver
+} from "@/components/profile/shared";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import { H1, H2, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/auth-context";
 import { useLoad } from "@/hooks/use-load";
@@ -34,7 +39,6 @@ type PatientProfile = {
 };
 
 /** Respuesta de PATCH /users/:id (solo se usan nombre y correo). */
-type AccountInfo = { nombre: string; correo: string };
 
 type Assigned = {
   id_psicologo: number;
@@ -63,12 +67,6 @@ const CONTACTO: Record<number, string> = {
 /* ------------------------------------------------------------------ */
 /* Utilidades                                                          */
 /* ------------------------------------------------------------------ */
-const errMsg = (e: any, fallback: string) => {
-  const m = e?.response?.data?.message;
-  return Array.isArray(m) ? m.join(", ") : (m ?? e?.message ?? fallback);
-};
-
-/** tipo_persona es CHAR(2) en la BD y llega con espacio al final ("A "). */
 const normalize = (p: PatientProfile): PatientProfile => ({
   ...p,
   tipoPersona: (p.tipoPersona ?? "").trim() as PatientProfile["tipoPersona"],
@@ -77,7 +75,6 @@ const normalize = (p: PatientProfile): PatientProfile => ({
 /** DATE sin hora: se toma el texto yyyy-mm-dd sin convertir de zona. */
 const dateOnly = (v: string | null) => (v ? v.slice(0, 10) : "");
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9]{10,15}$/;
 const cleanPhone = (v: string) => v.replace(/[\s()-]/g, "");
 
@@ -94,31 +91,6 @@ function validBirthDate(v: string): string | null {
   if (y < 1900) return "Revisa el año de nacimiento.";
   if (date.getTime() > Date.now()) return "La fecha no puede ser futura.";
   return null;
-}
-
-/** Estado de guardado independiente por sección. */
-function useSaver() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [ok, setOk] = useState("");
-  const fail = (m: string) => {
-    setOk("");
-    setError(m);
-  };
-  const run = async (fn: () => Promise<void>, okMsg: string) => {
-    setBusy(true);
-    setError("");
-    setOk("");
-    try {
-      await fn();
-      setOk(okMsg);
-    } catch (e) {
-      setError(errMsg(e, "No fue posible guardar los cambios"));
-    } finally {
-      setBusy(false);
-    }
-  };
-  return { busy, error, ok, fail, run };
 }
 
 /* ------------------------------------------------------------------ */
@@ -159,92 +131,6 @@ function Choice<T extends string | number>({
         );
       })}
     </View>
-  );
-}
-
-function Feedback({ error, ok }: { error: string; ok: string }) {
-  if (error)
-    return <Text className="font-sans text-sm text-danger">{error}</Text>;
-  if (ok) return <Text className="font-sans text-sm text-success">{ok}</Text>;
-  return null;
-}
-
-function ReadOnlyField({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="gap-1">
-      <Text className="font-sans text-sm font-medium text-ink">{label}</Text>
-      <View className="min-h-11 justify-center rounded-nf-sm border border-border bg-border/30 px-3.5">
-        <Text className="font-sans text-[15px] text-muted">{value}</Text>
-      </View>
-    </View>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Sección: cuenta (nombre y correo)                                   */
-/* ------------------------------------------------------------------ */
-function AccountSection({
-  data,
-  onSaved,
-}: {
-  data: Data;
-  onSaved: (account: AccountInfo) => void;
-}) {
-  const p = data.patient;
-  const [nombre, setNombre] = useState(p.nombre);
-  const [correo, setCorreo] = useState(p.correo);
-  const s = useSaver();
-
-  const save = () => {
-    const n = nombre.trim();
-    const c = correo.trim().toLowerCase();
-    if (!n) return s.fail("El nombre no puede estar vacío.");
-    if (n.length > 100) return s.fail("El nombre admite hasta 100 caracteres.");
-    if (!EMAIL_RE.test(c)) return s.fail("Escribe un correo válido.");
-
-    const dto: Record<string, string> = {};
-    if (n !== p.nombre) dto.nombre = n;
-    if (c !== p.correo.toLowerCase()) dto.correo = c;
-    if (!Object.keys(dto).length) return s.fail("No hay cambios que guardar.");
-
-    void s.run(
-      async () => {
-        const updated = (await usersApi.update(
-          p.idPaciente,
-          dto,
-        )) as AccountInfo;
-        onSaved(updated);
-        setNombre(updated.nombre);
-        setCorreo(updated.correo);
-      },
-      dto.correo
-        ? "Datos actualizados. Usa el nuevo correo la próxima vez que inicies sesión."
-        : "Datos actualizados.",
-    );
-  };
-
-  return (
-    <Card className="gap-4">
-      <H2>Cuenta</H2>
-      <Input
-        label="Nombre"
-        value={nombre}
-        onChangeText={setNombre}
-        maxLength={100}
-        autoCapitalize="words"
-      />
-      <Input
-        label="Correo electrónico"
-        value={correo}
-        onChangeText={setCorreo}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <Muted>El correo es el que usas para iniciar sesión.</Muted>
-      <Feedback error={s.error} ok={s.ok} />
-      <Button title="Guardar cuenta" loading={s.busy} onPress={save} />
-    </Card>
   );
 }
 
@@ -416,62 +302,6 @@ function ContactSection({
 }
 
 /* ------------------------------------------------------------------ */
-/* Sección: seguridad (contraseña)                                     */
-/* ------------------------------------------------------------------ */
-function PasswordSection({ userId }: { userId: number }) {
-  const [actual, setActual] = useState("");
-  const [nueva, setNueva] = useState("");
-  const [repetir, setRepetir] = useState("");
-  const s = useSaver();
-
-  const save = () => {
-    if (!actual) return s.fail("Escribe tu contraseña actual.");
-    if (nueva.length < 8)
-      return s.fail("La nueva contraseña debe tener al menos 8 caracteres.");
-    if (nueva === actual)
-      return s.fail("La nueva contraseña debe ser distinta de la actual.");
-    if (nueva !== repetir) return s.fail("Las contraseñas no coinciden.");
-
-    void s.run(async () => {
-      await usersApi.changePassword(userId, {
-        contrasenaActual: actual,
-        contrasenaNueva: nueva,
-      });
-      setActual("");
-      setNueva("");
-      setRepetir("");
-    }, "Contraseña actualizada.");
-  };
-
-  return (
-    <Card className="gap-4">
-      <H2>Seguridad</H2>
-      <PasswordInput
-        label="Contraseña actual"
-        value={actual}
-        onChangeText={setActual}
-        autoComplete="current-password"
-      />
-      <PasswordInput
-        label="Nueva contraseña"
-        value={nueva}
-        onChangeText={setNueva}
-        autoComplete="new-password"
-      />
-      <PasswordInput
-        label="Repite la nueva contraseña"
-        value={repetir}
-        onChangeText={setRepetir}
-        autoComplete="new-password"
-      />
-      <Muted>Mínimo 8 caracteres.</Muted>
-      <Feedback error={s.error} ok={s.ok} />
-      <Button title="Cambiar contraseña" loading={s.busy} onPress={save} />
-    </Card>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Pantalla                                                            */
 /* ------------------------------------------------------------------ */
 export default function Profile() {
@@ -560,7 +390,9 @@ export default function Profile() {
           </Card>
 
           <AccountSection
-            data={data}
+            userId={userId}
+            nombre={data.patient.nombre}
+            correo={data.patient.correo}
             onSaved={(account) =>
               setSaved({
                 ...(saved ?? q.data!.patient),

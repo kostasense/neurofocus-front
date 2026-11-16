@@ -34,6 +34,7 @@ export type Appointment = {
   fecha_creacion?: string;
   motivo_cancelacion?: string | null;
   notas_agenda?: string | null;
+  creada_por?: number;
 };
 
 export type Evaluation = {

@@ -14,6 +14,10 @@ export const appointmentsApi = {
     apiData(apiClient.patch(`/appointments/schedules/${id}`, d)),
   deactivateSchedule: (id: number) =>
     apiData(apiClient.patch(`/appointments/schedules/${id}/deactivate`)),
+  /** Elimina definitivamente un bloque (requiere el parche eliminar-horario). */
+  deleteSchedule: (id: number) =>
+    apiData(apiClient.delete(`/appointments/schedules/${id}`)),
+  /** Intervalos ocupados (sin datos de pacientes). Requiere el endpoint availability. */
   busy: (id: number, from?: string, to?: string) =>
     apiData<Interval[]>(
       apiClient.get(`/appointments/availability/psychologist/${id}`, {
@@ -30,7 +34,7 @@ export const appointmentsApi = {
       }),
     ),
   byPsychologist: (id: number, from?: string, to?: string) =>
-    apiData(
+    apiData<Appointment[]>(
       apiClient.get(`/appointments/psychologist/${id}`, {
         params: { from, to },
       }),
@@ -43,5 +47,6 @@ export const appointmentsApi = {
     ),
   reschedule: (id: number, d: any) =>
     apiData(apiClient.patch(`/appointments/${id}/reschedule`, d)),
-  get: (id: number) => apiData(apiClient.get(`/appointments/${id}`)),
+  get: (id: number) =>
+    apiData<Appointment>(apiClient.get(`/appointments/${id}`)),
 };

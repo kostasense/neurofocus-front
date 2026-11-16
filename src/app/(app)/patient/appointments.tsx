@@ -71,6 +71,8 @@ type BookerProps = {
   citas: Appointment[];
   /** Si se indica, se reprograma esa cita (mismo psicólogo). */
   editing: Appointment | null;
+  /** Dentro de la tarjeta de una cita (sin Card propia). */
+  embedded?: boolean;
   onDone: (message: string) => void;
   onCancelEdit: () => void;
 };
@@ -80,6 +82,7 @@ function Booker({
   assignedId,
   citas,
   editing,
+  embedded,
   onDone,
   onCancelEdit,
 }: BookerProps) {
@@ -116,7 +119,13 @@ function Booker({
     new Date(i.inicio).getTime() === editingStart &&
     new Date(i.fin).getTime() === new Date(editing!.fin).getTime();
 
-  const busyList = (data.data?.busyList ?? []).filter((i) => !sameAsEditing(i));
+  // La cita que se reprograma sigue contando como ocupada: no se puede mover al
+  // mismo horario.
+  const busyList = data.data?.busyList ?? [];
+  const isCurrentSlot = (s: Slot) =>
+    !!editing &&
+    s.start.getTime() < new Date(editing.fin).getTime() &&
+    s.end.getTime() > new Date(editing.inicio).getTime();
   const own = citas
     .filter((c) => isActive(c) && !sameAsEditing(c))
     .map((c) => ({ inicio: c.inicio, fin: c.fin }));
@@ -143,6 +152,8 @@ function Booker({
 
   const confirm = async () => {
     if (!slot || !psyId) return;
+    if (editing && isCurrentSlot(slot))
+      return setError("Elige un horario distinto al actual.");
     setError("");
     setBusy(true);
     try {
@@ -179,8 +190,13 @@ function Booker({
 
   const weeks = monthMatrix(month);
 
+  const Wrapper: any = embedded ? View : Card;
   return (
-    <Card className="gap-4">
+    <Wrapper
+      className={
+        embedded ? "gap-4 rounded-nf-sm border border-primary p-3" : "gap-4"
+      }
+    >
       <View className="flex-row items-center justify-between gap-2">
         <H2>{editing ? "Reprogramar cita" : "Agendar cita"}</H2>
         {editing ? (
@@ -406,9 +422,11 @@ function Booker({
                       >
                         {libre
                           ? MODALIDAD[s.modalidad]
-                          : s.status === "tuya"
-                            ? "Ya tienes cita"
-                            : "Ocupado"}
+                          : isCurrentSlot(s)
+                            ? "Tu horario actual"
+                            : s.status === "tuya"
+                              ? "Ya tienes cita"
+                              : "Ocupado"}
                       </Text>
                     </Pressable>
                   );
@@ -453,7 +471,7 @@ function Booker({
           ) : null}
         </>
       ) : null}
-    </Card>
+    </Wrapper>
   );
 }
 
@@ -462,12 +480,24 @@ function Booker({
 /* ------------------------------------------------------------------ */
 function CitaCard({
   c,
+  psychologists,
+  assignedId,
+  citas,
+  rescheduling,
   onReschedule,
+  onCloseReschedule,
+  onRescheduled,
   onChanged,
   onMessage,
 }: {
   c: Appointment;
+  psychologists: Psychologist[];
+  assignedId: number | null;
+  citas: Appointment[];
+  rescheduling: boolean;
   onReschedule: (c: Appointment) => void;
+  onCloseReschedule: () => void;
+  onRescheduled: (m: string) => void;
   onChanged: () => void;
   onMessage: (m: string) => void;
 }) {
@@ -524,7 +554,7 @@ function CitaCard({
         <Muted>Motivo: {c.motivo_cancelacion}</Muted>
       ) : null}
 
-      {editable && !cancelling ? (
+      {editable && !cancelling && !rescheduling ? (
         <View className="flex-row flex-wrap gap-2 pt-1">
           <Button
             title="Reprogramar"
@@ -537,6 +567,18 @@ function CitaCard({
             onPress={() => setCancelling(true)}
           />
         </View>
+      ) : null}
+
+      {rescheduling ? (
+        <Booker
+          embedded
+          psychologists={psychologists}
+          assignedId={assignedId}
+          citas={citas}
+          editing={c}
+          onCancelEdit={onCloseReschedule}
+          onDone={onRescheduled}
+        />
       ) : null}
 
       {cancelling ? (
@@ -606,15 +648,17 @@ export default function Appointments() {
   const bookable = (q.data?.psychologists ?? []).filter(
     (p) => p.activo && p.activo_para_citas,
   );
+  const psychologists = assignedId
+    ? (q.data?.psychologists ?? []).filter((p) => p.id_psicologo === assignedId)
+    : bookable;
   // En reprogramación el psicólogo de la cita debe estar en la lista aunque ya
   // no esté activo para nuevas citas.
-  const psychologists = editing
-    ? (q.data?.psychologists ?? [])
-    : assignedId
-      ? (q.data?.psychologists ?? []).filter(
-          (p) => p.id_psicologo === assignedId,
-        )
-      : bookable;
+  const allPsychologists = q.data?.psychologists ?? [];
+  const done = (m: string) => {
+    setMessage(m);
+    setEditing(null);
+    void q.reload();
+  };
 
   return (
     <>
@@ -639,17 +683,13 @@ export default function Appointments() {
           ) : null}
 
           <Booker
-            key={editing ? `edit-${editing.id_cita}` : "new"}
+            key="new"
             psychologists={psychologists}
             assignedId={assignedId}
             citas={citas}
-            editing={editing}
-            onCancelEdit={() => setEditing(null)}
-            onDone={(m) => {
-              setMessage(m);
-              setEditing(null);
-              void q.reload();
-            }}
+            editing={null}
+            onCancelEdit={() => {}}
+            onDone={done}
           />
 
           <View className="gap-3">
@@ -661,6 +701,12 @@ export default function Appointments() {
                 <CitaCard
                   key={String(c.id_cita)}
                   c={c}
+                  psychologists={allPsychologists}
+                  assignedId={assignedId}
+                  citas={citas}
+                  rescheduling={editing?.id_cita === c.id_cita}
+                  onCloseReschedule={() => setEditing(null)}
+                  onRescheduled={done}
                   onReschedule={(x) => {
                     setMessage("");
                     setEditing(x);
@@ -679,6 +725,12 @@ export default function Appointments() {
                 <CitaCard
                   key={String(c.id_cita)}
                   c={c}
+                  psychologists={allPsychologists}
+                  assignedId={assignedId}
+                  citas={citas}
+                  rescheduling={false}
+                  onCloseReschedule={() => {}}
+                  onRescheduled={() => {}}
                   onReschedule={() => {}}
                   onChanged={() => {}}
                   onMessage={() => {}}

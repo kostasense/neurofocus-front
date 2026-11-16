@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/auth-context";
 import { roleHome } from "@/lib/format";
+import { refreshUnread, useUnread } from "@/lib/unread-store";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Href, router } from "expo-router";
@@ -28,8 +29,40 @@ const DESKTOP_MIN_WIDTH = 768;
 
 type Rect = { x: number; y: number; w: number; h: number };
 
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  danger,
+}: {
+  icon: React.ComponentProps<typeof Feather>["name"];
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="min-h-11 flex-row items-center gap-3 rounded-nf-sm px-3 py-2.5 hover:bg-background active:bg-background"
+    >
+      <Feather name={icon} size={18} color={danger ? "#B83232" : "#1C1C2A"} />
+      <Text
+        className={
+          danger
+            ? "font-sans text-[15px] font-medium text-danger"
+            : "font-sans text-[15px] font-medium text-ink"
+        }
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
   const { user, signOut } = useAuth();
+  const unread = useUnread(user?.userId);
   const { width: windowWidth } = useWindowDimensions();
   // Web con pantalla ancha = ventana flotante. Móvil (o web angosto) = cajón.
   const isDesktop = Platform.OS === "web" && windowWidth >= DESKTOP_MIN_WIDTH;
@@ -59,6 +92,15 @@ export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
   };
   const closeMenu = () => setOpen(false);
 
+  // Punto verde de la campana: se consulta al montar y cada 30 s (no hay tiempo real).
+  const userId = user?.userId;
+  useEffect(() => {
+    if (!userId) return;
+    void refreshUnread(userId);
+    const t = setInterval(() => void refreshUnread(userId), 30000);
+    return () => clearInterval(t);
+  }, [userId]);
+
   useEffect(() => {
     if (!mounted) return;
     Animated.timing(anim, {
@@ -80,17 +122,50 @@ export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
     void signOut();
   };
 
+  const go = (href: Href) => {
+    closeMenu();
+    router.push(href);
+  };
+
+  // Pacientes y psicólogos tienen perfil y sugerencias en el menú.
+  const profileHref: Href | null =
+    user?.rol === 1
+      ? "/(app)/patient/profile"
+      : user?.rol === 2
+        ? "/(app)/psychologist/profile"
+        : null;
+  const suggestionsHref: Href | null =
+    user?.rol === 1 || user?.rol === 2 ? "/(app)/shared/suggestions" : null;
+
   const menuItems = (
-    <Pressable
-      accessibilityRole="button"
-      onPress={logout}
-      className="min-h-11 flex-row items-center gap-3 rounded-nf-sm px-3 py-2.5 hover:bg-background active:bg-background"
-    >
-      <Feather name="log-out" size={18} color="#B83232" />
-      <Text className="font-sans text-[15px] font-medium text-danger">
-        Cerrar sesión
-      </Text>
-    </Pressable>
+    <View>
+      {user?.correo ? (
+        <Text
+          numberOfLines={1}
+          className="px-3 pb-2 pt-1 font-sans text-xs text-muted"
+        >
+          {user.correo}
+        </Text>
+      ) : null}
+      {profileHref ? (
+        <MenuItem
+          icon="user"
+          label="Mi perfil"
+          onPress={() => go(profileHref)}
+        />
+      ) : null}
+      {suggestionsHref ? (
+        <MenuItem
+          icon="message-square"
+          label="Sugerencias"
+          onPress={() => go(suggestionsHref)}
+        />
+      ) : null}
+      {profileHref || suggestionsHref ? (
+        <View className="mx-3 my-1 h-px bg-border" />
+      ) : null}
+      <MenuItem icon="log-out" label="Cerrar sesión" danger onPress={logout} />
+    </View>
   );
 
   // --- Ventana flotante (web) ---
@@ -225,17 +300,42 @@ export function AppHeader({ title = "NeuroFocus" }: { title?: string }) {
           />
         </Pressable>
 
-        <Pressable
-          ref={buttonRef}
-          collapsable={false}
-          onPress={open ? closeMenu : openMenu}
-          accessibilityRole="button"
-          accessibilityLabel={open ? "Cerrar menú" : "Abrir menú"}
-          accessibilityState={{ expanded: open }}
-          className="h-11 w-11 items-center justify-center rounded-nf-sm border border-border active:opacity-80"
-        >
-          <Feather name={open ? "x" : "menu"} size={22} color="#1C1C2A" />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => {
+              if (open) closeMenu();
+              router.navigate("/(app)/shared/notifications");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              unread > 0
+                ? `Notificaciones, ${unread} sin leer`
+                : "Notificaciones"
+            }
+            className="h-11 w-11 items-center justify-center rounded-nf-sm border border-border active:opacity-80"
+          >
+            <Feather name="bell" size={21} color="#1C1C2A" />
+            {unread > 0 ? (
+              <View
+                pointerEvents="none"
+                style={{ position: "absolute", top: -4, left: -4 }}
+                className="h-3.5 w-3.5 rounded-full border-2 border-surface bg-success"
+              />
+            ) : null}
+          </Pressable>
+
+          <Pressable
+            ref={buttonRef}
+            collapsable={false}
+            onPress={open ? closeMenu : openMenu}
+            accessibilityRole="button"
+            accessibilityLabel={open ? "Cerrar menú" : "Abrir menú"}
+            accessibilityState={{ expanded: open }}
+            className="h-11 w-11 items-center justify-center rounded-nf-sm border border-border active:opacity-80"
+          >
+            <Feather name={open ? "x" : "menu"} size={22} color="#1C1C2A" />
+          </Pressable>
+        </View>
       </View>
 
       <Modal

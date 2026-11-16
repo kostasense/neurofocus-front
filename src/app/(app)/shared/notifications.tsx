@@ -12,6 +12,7 @@ import { useAuth } from "@/context/auth-context";
 import { useLoad } from "@/hooks/use-load";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
+import { setUnread } from "@/lib/unread-store";
 import type { Notification, User } from "@/types/api";
 import { ROLES } from "@/types/routes";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -459,7 +460,6 @@ export default function Notifications() {
   const { user } = useAuth();
   const isAdmin = user?.rol === ROLES.ADMIN;
 
-  const [tipo, setTipo] = useState<number>(0); // 0 = todos
   const [prioridad, setPrioridad] = useState<number>(0);
   const [soloNoLeidas, setSoloNoLeidas] = useState(false);
 
@@ -468,7 +468,7 @@ export default function Notifications() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
-  const [unread, setUnread] = useState<number | null>(null);
+  const [unread, setUnreadCount] = useState<number | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyAll, setBusyAll] = useState(false);
   const [showSend, setShowSend] = useState(false);
@@ -480,20 +480,20 @@ export default function Notifications() {
         limite: PAGE,
         desplazamiento: offset,
         soloNoLeidas: soloNoLeidas || undefined,
-        tipo: tipo || undefined,
         prioridad: prioridad || undefined,
       }),
-    [tipo, prioridad, soloNoLeidas],
+    [prioridad, soloNoLeidas],
   );
 
   const refreshCount = useCallback(async () => {
     try {
       const r = await notificationsApi.unreadCount();
-      setUnread(r.total);
+      setUnreadCount(r.total);
+      if (user) setUnread(user.userId, r.total);
     } catch {
       /* el contador es informativo */
     }
-  }, []);
+  }, [user]);
 
   const reload = useCallback(async () => {
     const id = ++requestId.current;
@@ -571,7 +571,7 @@ export default function Notifications() {
     }
   };
 
-  const filtrando = tipo || prioridad || soloNoLeidas;
+  const filtrando = prioridad || soloNoLeidas;
 
   return (
     <>
@@ -588,9 +588,9 @@ export default function Notifications() {
                   : `Tienes ${unread} ${unread === 1 ? "notificación sin leer" : "notificaciones sin leer"}.`}
             </Muted>
           </View>
-          <View className="flex-row flex-wrap gap-2">
+          <View className="flex-row flex-wrap gap-2 max-w-60">
             <Button
-              title="Marcar todas como leídas"
+              title="Marcar como leídas"
               variant="secondary"
               loading={busyAll}
               disabled={!unread}
@@ -617,17 +617,6 @@ export default function Notifications() {
             ]}
           />
           <Choice
-            value={tipo}
-            onChange={setTipo}
-            options={[
-              { value: 0, label: "Todos los tipos" },
-              ...Object.entries(TIPO).map(([k, label]) => ({
-                value: Number(k),
-                label,
-              })),
-            ]}
-          />
-          <Choice
             value={prioridad}
             onChange={setPrioridad}
             options={[
@@ -643,7 +632,6 @@ export default function Notifications() {
               title="Limpiar filtros"
               variant="secondary"
               onPress={() => {
-                setTipo(0);
                 setPrioridad(0);
                 setSoloNoLeidas(false);
               }}
