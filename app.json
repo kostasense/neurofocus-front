@@ -4,31 +4,31 @@
     "slug": "neurofocus-front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/neurofocus/icono_neurofocus_vb.png",
+    "icon": "./assets/neurofocus/icono_neurofocus_verde_bg_blanco-512.png",
     "scheme": "neurofocusfront",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/neurofocus/icono_neurofocus_vb.png"
+      "icon": "./assets/neurofocus/icono_neurofocus_verde_bg_blanco-512.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundImage": "./assets/neurofocus/bg_foco_blanco.png",
-        "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-512x512.png"
+        "backgroundImage": "./assets/neurofocus/bg_blanco_512.png",
+        "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-512.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.kostasense.neurofocusfront"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/neurofocus/icono_neurofocus_vb.png"
+      "favicon": "./assets/neurofocus/foco_neurofocus_verde-512.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#3B7A70",
-          "image": "./assets/neurofocus/icono_neurofocus_vb.png",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/neurofocus/foco_neurofocus_verde-512.png",
           "imageWidth": 76
         }
       ],
