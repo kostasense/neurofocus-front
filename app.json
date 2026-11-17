@@ -13,7 +13,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundImage": "./assets/neurofocus/bg_blanco_512.png",
-        "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-512.png"
+        "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-256.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.kostasense.neurofocusfront"
