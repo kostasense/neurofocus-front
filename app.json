@@ -12,8 +12,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundImage": "./assets/neurofocus/bg_blanco_512.png",
-        "foregroundImage": "./assets/neurofocus/foco_neurofocus_verde-256.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/neurofocus/foco_neurofocus_adaptive_512.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.kostasense.neurofocusfront"
