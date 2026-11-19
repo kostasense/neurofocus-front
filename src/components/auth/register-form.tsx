@@ -1,13 +1,21 @@
 import { usersApi } from "@/api/users";
+import { LegalModal } from "@/components/auth/legal-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { H1, Muted } from "@/components/ui/typography";
 import { cn } from "@/lib/cn";
 import {
-    digitsOfInstitutionalEmail,
-    isInstitutionalEmail,
+  AVISO_PRIVACIDAD,
+  CONSENTIMIENTO,
+  LEGAL_VERSION,
+  type LegalDoc,
+} from "@/lib/legal";
+import {
+  digitsOfInstitutionalEmail,
+  isInstitutionalEmail,
 } from "@/lib/validators";
+import { Check } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -18,7 +26,10 @@ const TIPOS = [
 ] as const;
 
 type Errors = Partial<
-  Record<"nombre" | "correo" | "contrasena" | "numControlOEmpleado", string>
+  Record<
+    "nombre" | "correo" | "contrasena" | "numControlOEmpleado" | "legal",
+    string
+  >
 >;
 
 export function RegisterForm({
@@ -35,6 +46,9 @@ export function RegisterForm({
     numControlOEmpleado: "",
     tipoPersona: "A" as "A" | "D" | "PA",
   });
+  const [consent, setConsent] = useState(false);
+  const [aviso, setAviso] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<LegalDoc | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,6 +74,9 @@ export function RegisterForm({
     if (d.contrasena.length < 8) e.contrasena = "Mínimo 8 caracteres.";
     if (!d.numControlOEmpleado.trim())
       e.numControlOEmpleado = "Escribe tu número de control o de empleado.";
+    if (!consent || !aviso)
+      e.legal =
+        "Para crear tu cuenta debes aceptar el consentimiento informado y el aviso de privacidad.";
     return e;
   };
 
@@ -75,6 +92,9 @@ export function RegisterForm({
         nombre: d.nombre.trim(),
         correo: d.correo.trim(),
         numControlOEmpleado: d.numControlOEmpleado.trim(),
+        aceptaConsentimiento: consent,
+        aceptaAviso: aviso,
+        versionTextos: LEGAL_VERSION,
       });
       onRegistered(d.correo.trim());
     } catch (err: any) {
@@ -157,17 +177,80 @@ export function RegisterForm({
           })}
         </View>
       </View>
+      <View className="gap-3">
+        <LegalCheck
+          checked={consent}
+          onToggle={() => setConsent((v) => !v)}
+          prefix="He leído y acepto el "
+          linkText="consentimiento informado"
+          onOpen={() => setLegalDoc(CONSENTIMIENTO)}
+        />
+        <LegalCheck
+          checked={aviso}
+          onToggle={() => setAviso((v) => !v)}
+          prefix="He leído y acepto el "
+          linkText="aviso de privacidad"
+          onOpen={() => setLegalDoc(AVISO_PRIVACIDAD)}
+        />
+        {errors.legal ? (
+          <Text className="font-sans text-xs text-danger">{errors.legal}</Text>
+        ) : null}
+      </View>
       <Button
         title="Registrarme"
         loading={loading}
         onPress={() => void submit()}
       />
+      <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />
       <Text
         onPress={onSwitch}
         accessibilityRole="link"
         className="text-center font-sans text-sm text-primary"
       >
         ¿Ya tienes cuenta? Iniciar sesión
+      </Text>
+    </View>
+  );
+}
+
+function LegalCheck({
+  checked,
+  onToggle,
+  prefix,
+  linkText,
+  onOpen,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  prefix: string;
+  linkText: string;
+  onOpen: () => void;
+}) {
+  return (
+    <View className="flex-row items-start gap-3">
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked }}
+        accessibilityLabel={prefix + linkText}
+        onPress={onToggle}
+        hitSlop={8}
+        className={cn(
+          "mt-0.5 h-5 w-5 items-center justify-center rounded border",
+          checked ? "border-primary bg-primary" : "border-border bg-surface",
+        )}
+      >
+        {checked ? <Check size={14} color="white" /> : null}
+      </Pressable>
+      <Text className="flex-1 font-sans text-sm text-ink">
+        {prefix}
+        <Text
+          accessibilityRole="link"
+          onPress={onOpen}
+          className="font-semibold text-primary underline"
+        >
+          {linkText}
+        </Text>
+        .
       </Text>
     </View>
   );
